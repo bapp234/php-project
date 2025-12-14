@@ -1,0 +1,26 @@
+version: '3.8'
+
+services:
+  # 1. Web Server (PHP + Apache)
+  php_web:
+    build: .
+    ports:
+      - "8080:80" # Mở ở cổng 8080 máy bạn -> trỏ vào cổng 80 container
+    volumes:
+      - .:/var/www/html # Code sửa ở máy bạn -> Cập nhật ngay vào Docker
+    depends_on:
+      - db_mysql
+
+  # 2. Database MySQL
+  db_mysql:
+    image: mysql:8.0
+    container_name: php_mysql_container
+    restart: always
+    environment:
+      MYSQL_DATABASE: php_demo_db
+      MYSQL_ROOT_PASSWORD: mysecretpassword
+    volumes:
+      - mysql_data:/var/lib/mysql
+
+volumes:
+  mysql_data:
