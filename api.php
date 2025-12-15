@@ -1,55 +1,74 @@
 <?php
 header('Content-Type: application/json');
 
-// Kiểm tra xem đang chạy ở đâu?
-// Nếu tên miền chứa chữ 'localhost' -> Đang ở Docker
+// --- PHẦN 1: KẾT NỐI DATABASE (GIỮ NGUYÊN LOGIC CŨ) ---
 if (strpos($_SERVER['HTTP_HOST'], 'localhost') !== false) {
-    // CẤU HÌNH CHO DOCKER
+    // Docker
     $host = 'db_mysql';
     $user = 'root';
     $pass = 'mysecretpassword';
     $db   = 'php_demo_db';
 } else {
-    // CẤU HÌNH CHO INFINITYFREE (HOSTING)
-    // 👉 BẮP ĐIỀN THÔNG TIN LẤY Ở BƯỚC 1 VÀO ĐÂY NHÉ:
-    $host = 'sqlXXX.infinityfree.com';  // Thay bằng MySQL Hostname thật
-    $user = 'if0_40677408';             // Thay bằng MySQL Username thật
-    $pass = 'Sang06092004a';            // Password của bạn
-    $db   = 'if0_40677408_demo';        // Thay bằng MySQL Database Name thật
+    // InfinityFree Hosting (Bắp nhớ thay thông tin thật vào đây nhé)
+    $host = 'sqlXXX.infinityfree.com';
+    $user = 'if0_40677408';
+    $pass = 'Sang06092004a';
+    $db   = 'if0_40677408_demo';
 }
 
-// Kết nối MySQL
 $conn = new mysqli($host, $user, $pass, $db);
-
 if ($conn->connect_error) {
-    // In ra lỗi cụ thể để debug xem sai ở đâu
     die(json_encode(["status" => "error", "message" => "Lỗi kết nối: " . $conn->connect_error]));
 }
 
-// Tạo bảng nếu chưa có (Để Hosting tự tạo bảng luôn)
-$sql_create = "CREATE TABLE IF NOT EXISTS visitors (
+// --- PHẦN 2: TẠO BẢNG SINH VIÊN (NẾU CHƯA CÓ) ---
+$sql_create = "CREATE TABLE IF NOT EXISTS students (
     id INT AUTO_INCREMENT PRIMARY KEY,
-    visit_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    name VARCHAR(255) NOT NULL,
+    dob DATE NOT NULL,
+    age INT NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 )";
 $conn->query($sql_create);
 
-// Thêm lượt truy cập
-$conn->query("INSERT INTO visitors () VALUES ()");
+// --- PHẦN 3: XỬ LÝ YÊU CẦU ---
 
-// Đếm số lượt
-$result = $conn->query("SELECT COUNT(*) as total FROM visitors");
-if ($result) {
-    $row = $result->fetch_assoc();
-    $msg = "Thành công! Tổng lượt truy cập: " . $row['total'];
-} else {
-    $msg = "Kết nối được nhưng chưa lấy được dữ liệu.";
+$method = $_SERVER['REQUEST_METHOD'];
+
+// Nếu là gửi dữ liệu lên (POST)
+if ($method === 'POST') {
+    // Lấy dữ liệu từ form
+    $data = json_decode(file_get_contents("php://input"), true);
+    $name = $conn->real_escape_string($data['name']);
+    $dob  = $data['dob']; // Định dạng YYYY-MM-DD
+
+    // TÍNH TUỔI CHÍNH XÁC
+    $bday = new DateTime($dob);
+    $today = new DateTime('today');
+    $age = $bday->diff($today)->y;
+
+    // Lưu vào DB
+    $sql = "INSERT INTO students (name, dob, age) VALUES ('$name', '$dob', $age)";
+    
+    if ($conn->query($sql)) {
+        echo json_encode([
+            "status" => "success", 
+            "message" => "Đã thêm sinh viên: $name", 
+            "age" => $age
+        ]);
+    } else {
+        echo json_encode(["status" => "error", "message" => "Lỗi SQL: " . $conn->error]);
+    }
+} 
+// Nếu là lấy danh sách (GET)
+else {
+    $result = $conn->query("SELECT * FROM students ORDER BY id DESC LIMIT 10");
+    $students = [];
+    while($row = $result->fetch_assoc()) {
+        $students[] = $row;
+    }
+    echo json_encode(["status" => "success", "data" => $students]);
 }
 
-$response = [
-    "status" => "success",
-    "message" => $msg . " (Server: " . $host . ")",
-];
-
-echo json_encode($response);
 $conn->close();
 ?>
