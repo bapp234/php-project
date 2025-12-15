@@ -2,19 +2,16 @@
     header('Content-Type: application/json');
 
     // --- PHẦN 1: KẾT NỐI DATABASE (GIỮ NGUYÊN LOGIC CŨ) ---
-    if (strpos($_SERVER['HTTP_HOST'], 'localhost') !== false) {
-        // Docker
-        $host = 'db_mysql';
-        $user = 'root';
-        $pass = 'mysecretpassword';
-       $db   = 'php_demo_db';
-    } else {
-        // InfinityFree Hosting (Bắp nhớ thay thông tin thật vào đây nhé)
-        $host = 'sql103.infinityfree.com';
-        $user = 'if0_40677408';
-        $pass = 'Sang06092004a';
-        $db   = 'if0_40677408_demo';
-    }
+   $host = getenv('DB_HOST');
+$user = getenv('DB_USER');
+$pass = getenv('DB_PASS');
+$db   = getenv('DB_NAME');
+  if (!$host) {
+    $host = 'sql103.infinityfree.com';
+    $user = 'if0_40677408';
+    $pass = 'Sang06092004a';
+    $db   = 'if0_40677408_demo';
+}
 
     $conn = new mysqli($host, $user, $pass, $db);
     if ($conn->connect_error) {
