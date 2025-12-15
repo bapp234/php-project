@@ -7,7 +7,7 @@
         $host = 'db_mysql';
         $user = 'root';
         $pass = 'mysecretpassword';
-        $db   = 'if0_40677408_demo';
+       $db   = 'php_demo_db';
     } else {
         // InfinityFree Hosting (Bắp nhớ thay thông tin thật vào đây nhé)
         $host = 'sql103.infinityfree.com';
