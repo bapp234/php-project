@@ -5,9 +5,9 @@ services:
   php_web:
     build: .
     ports:
-      - "8080:80" # Mở ở cổng 8080 máy bạn -> trỏ vào cổng 80 container
+      - "8080:80"
     volumes:
-      - .:/var/www/html # Code sửa ở máy bạn -> Cập nhật ngay vào Docker
+      - .:/var/www/html
     depends_on:
       - db_mysql
 
@@ -21,17 +21,20 @@ services:
       MYSQL_ROOT_PASSWORD: mysecretpassword
     volumes:
       - mysql_data:/var/lib/mysql
-# 3. phpMyAdmin (MỚI THÊM)
+
+  # 3. phpMyAdmin (Quản lý DB)
   phpmyadmin:
     image: phpmyadmin/phpmyadmin
     container_name: my_phpmyadmin
     restart: always
     ports:
-      - "8081:80"  # Truy cập qua cổng 8081
+      - "8081:80"
     environment:
-      PMA_HOST: db_mysql       # Kết nối vào service MySQL ở trên
-      MYSQL_ROOT_PASSWORD: mysecretpassword
+      PMA_HOST: db_mysql
+      # Nếu muốn tự động điền mật khẩu thì dùng dòng dưới (không bắt buộc)
+      PMA_PASSWORD: mysecretpassword 
     depends_on:
       - db_mysql
+
 volumes:
   mysql_data:
