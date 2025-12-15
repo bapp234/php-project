@@ -21,6 +21,17 @@ services:
       MYSQL_ROOT_PASSWORD: mysecretpassword
     volumes:
       - mysql_data:/var/lib/mysql
-
+# 3. phpMyAdmin (MỚI THÊM)
+  phpmyadmin:
+    image: phpmyadmin/phpmyadmin
+    container_name: my_phpmyadmin
+    restart: always
+    ports:
+      - "8081:80"  # Truy cập qua cổng 8081
+    environment:
+      PMA_HOST: db_mysql       # Kết nối vào service MySQL ở trên
+      MYSQL_ROOT_PASSWORD: mysecretpassword
+    depends_on:
+      - db_mysql
 volumes:
   mysql_data:
